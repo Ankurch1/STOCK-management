@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class StockControlConfig(AppConfig):
-    name = 'stock_control'
+class StockControlFrontendConfig(AppConfig):
+    name = 'stock_control_frontend'
