@@ -1,18 +1,12 @@
+__Author__ = "Dan Bright, dan@uplandsdynamic.com"
+__Copyright__ = "(c) Copyright 2021 Dan Bright"
+__License__ = "GPL v3.0"
+__Version__ = "Version 4.1"
+
 from django.contrib import admin
 from .models import *
 
-@admin.register(AccountStockData)
-class AccountStockDataAppAdmin(admin.ModelAdmin):
-    pass
 
-@admin.register(AccountData)
-class AccountDataAppAdmin(admin.ModelAdmin):
-    pass
-    
-@admin.register(AccountStockTake)
-class AccountStockTakeAdmin(admin.ModelAdmin):
-    pass
-
-@admin.register(AccountStockTakeLines)
-class AccountStockTakeLinesAdmin(admin.ModelAdmin):
+@admin.register(StockData)
+class StockDataAppAdmin(admin.ModelAdmin):
     pass

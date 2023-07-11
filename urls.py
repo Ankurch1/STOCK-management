@@ -9,9 +9,17 @@ from rest_framework import routers, permissions
 from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
 from rest_framework.schemas import get_schema_view
-from rest_framework.authtoken import views as authviews
 
-app_name = 'accounts'
+app_name = 'stock-control'
+
+"""
+set up the routers for the viewset class based views
+"""
+# router = routers.DefaultRouter()
+# router.register(r'users', views.UserViewSet)
+# router.register(r'groups', views.GroupViewSet)
+# router.register(r'stock', views.StockDataViewSet)  # define manually to allow DRF unit testing (router testing buggy)
+# router.register(r'change-password', views.PasswordUpdateViewSet)  # define manually below to allow dots in usernames
 
 """
 set up the url patterns for the functional views and simple class based views
@@ -29,12 +37,15 @@ Note: Mapping for actions (used in as_view), are:
     }
 """
 functional_view_urlpatterns = [
-    re_path('^stock/$', views.AccountStockDataViewSet.as_view(
-        {'get': 'list',  'post': 'create'})),
-    re_path('^stock/(?P<pk>\d+)/$', views.AccountStockDataViewSet.as_view(
-        {'get': 'retrieve', 'patch': 'perform_single_update', 'delete': 'destroy'})),
-    re_path('^take-stock/$', views.AccountStockDataViewSet.as_view(
-        {'get': 'take_stock'})),
+    re_path('^change-password/(?P<username>[a-zA-Z0-9.].+)/$', views.PasswordUpdateViewSet.as_view(
+        {'patch': 'partial_update'})),
+    re_path(r'^logout/$', views.Logout.as_view()),
+    re_path('^stock/$', views.StockDataViewSet.as_view(
+        {'get': 'list', 'post': 'create', 'patch': 'perform_bulk_partial_update'})),
+    re_path('^stock/(?P<pk>\d+)/$', views.StockDataViewSet.as_view(
+        {'get': 'retrieve', 'patch': 'perform_single_update', 'delete': 'destroy', 'put': 'update'})),
+    re_path('^stock/latest/$', views.StockDataViewSet.as_view(
+        {'get': 'latest'})),
 ]
 
 """
@@ -42,3 +53,18 @@ add in extra urls to provide option to add content type suffix to requests
 (as handled by the api_view wrapper, in views.py)
 """
 urlpatterns = format_suffix_patterns(functional_view_urlpatterns)
+
+"""
+set up schema
+"""
+schema_view = get_schema_view(
+    title='Stock Data API',
+    permission_classes=[permissions.IsAdminUser]  # not public api, so only allow admin to view the schema
+)
+
+# final url patterns (everything included)
+urlpatterns += [
+    re_path(r'^(/?)$', schema_view),
+    re_path(r'^schema(/?)$', schema_view),
+    # re_path(r'^v1/', include(router.urls)),
+]

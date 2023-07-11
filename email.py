@@ -20,8 +20,6 @@ class SendEmail:
 
     class EmailType:
         STOCK_TRANSFER = 'Notification email sent when stock has been transferred'
-        ACCOUNT_STOCK_UPDATE = 'Notification email sent when an account\'s stock data is updated'
-        STOCK_TAKE = 'Stock take report'
 
     def __init__(self):
         self.email_invalid = False
@@ -59,9 +57,7 @@ class SendEmail:
                             f'Notifications are set to: '
                             f'{settings.STOCK_MANAGEMENT_OPTIONS["email"]}.'
                             f' If in live mode, notification email would be sent to: '
-                            f'{[a for a in email_to] if email_to else "Nobody!"}'
-                            f'The plaintext email body would read: {body_plaintext}'
-                            f'The html email body would read: {body_html}')
+                            f'{[a for a in email_to] if email_to else "Nobody!"}')
                     return True
                 except AnymailAPIError as e:
                     logger.error(f'An error has occurred in sending email: {e.describe_response()}')
@@ -69,9 +65,7 @@ class SendEmail:
                     logger.error(f'Error sending email: {e}')
         return False
 
-    def compose(
-            self, records: dict = None, user: User = None, pre_formatted: dict = None, notification_type: str = None,
-            subject: str = None) -> send:
+    def compose(self, records=None, user=None, notification_type=None):
         """
         :param records: updated records
         :param user: user making the update
@@ -152,33 +146,9 @@ class SendEmail:
                                     </ul>
                                     """)
             return body_plaintext, body_html
+
         try:
-            if notification_type == SendEmail.EmailType.STOCK_TAKE:
-                """
-                email stock take report to administrators + requester
-                """
-                admin_email_addr = User.objects.filter(groups__name='administrators').values_list(
-                    'email', flat=True)  # list of all stock administrator's email addresses
-                recipient_list = [a for a in admin_email_addr] if \
-                    admin_email_addr and settings.STOCK_MANAGEMENT_OPTIONS['email'][
-                        'notifications_to_administrators'] else []
-                if settings.STOCK_MANAGEMENT_OPTIONS['email']['notifications_to_transfer_requester']:
-                    recipient_list.append(user.email)  # add the transfer requester's email address
-                recipient_list = list(set(recipient_list))  # remove any dupes
-                """
-                Send email notification to admins (and requester (e.g. store manager) if configured to receive in settings.py).
-                """
-                if recipient_list:
-                    html_start = "<html><head></head><body>"
-                    html_divider = "<br/><hr/><br/>"
-                    html_end = "</body><footer><hr></footer></html>"
-                    plaintext = pre_formatted['plain']
-                    html = html_start + pre_formatted['html'] + html_end
-                    return self.send(body_plaintext=plaintext, body_html=html,
-                                     email_to=recipient_list,
-                                     email_from=settings.DEFAULT_FROM_EMAIL,
-                                     subject=subject)
-            elif notification_type == SendEmail.EmailType.STOCK_TRANSFER:
+            if notification_type == SendEmail.EmailType.STOCK_TRANSFER:
                 """
                 email notification to administrators + requester
                 """
